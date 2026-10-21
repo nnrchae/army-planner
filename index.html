@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>입대 D-Day & 전역일 통합 플래너</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; line-height: 1.6; }
+        .container { max-width: 650px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h1 { font-size: 22px; text-align: center; color: #1a365d; margin-top: 0; margin-bottom: 5px; }
+        .subtitle { text-align: center; font-size: 13px; color: #666; margin-bottom: 20px; }
+        
+        /* D-Day & 전역일 계산 박스 */
+        .date-box { background: #ebf8ff; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 25px; border: 1px solid #bee3f8; }
+        .input-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 12px; align-items: center; }
+        .input-group label { font-weight: bold; font-size: 14px; color: #2b6cb0; }
+        .input-group input, .input-group select { padding: 8px; font-size: 14px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none; }
+        
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .result-item { text-align: center; }
+        .result-label { font-size: 12px; color: #718096; }
+        .result-val { font-size: 16px; font-weight: bold; color: #2b6cb0; }
+        
+        /* Progress Bar */
+        .progress-container { margin-top: 12px; background: #e2e8f0; border-radius: 10px; height: 16px; overflow: hidden; position: relative; }
+        .progress-bar { background: linear-gradient(90deg, #3182ce, #63b3ed); height: 100%; width: 0%; transition: width 0.5s ease; }
+        .progress-text { font-size: 11px; font-weight: bold; color: #2d3748; margin-top: 4px; text-align: right; }
+
+        h2 { font-size: 17px; border-bottom: 2px solid #2b6cb0; padding-bottom: 6px; margin-top: 30px; color: #1a365d; display: flex; align-items: center; gap: 6px; }
+        
+        /* 체크리스트 스타일 */
+        ul.checklist { list-style: none; padding: 0; margin: 0; }
+        ul.checklist li { padding: 10px 0; border-bottom: 1px solid #edf2f7; font-size: 14px; display: flex; align-items: center; }
+        ul.checklist li input { margin-right: 12px; width: 18px; height: 18px; accent-color: #3182ce; cursor: pointer; }
+        
+        /* 카드 공통 스타일 */
+        .card-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 10px; }
+        .card { background: #f7fafc; padding: 14px 16px; border-radius: 10px; border-left: 4px solid #3182ce; }
+        .card h3 { margin: 0 0 6px 0; font-size: 15px; color: #2d3748; }
+        .card p { margin: 0; font-size: 13px; color: #4a5568; line-height: 1.5; }
+
+        /* SVG 아이콘 기반 꿀템 카드 */
+        .item-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px; }
+        .item-card { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #fff; text-align: center; }
+        .item-icon-box { background: #edf2f7; height: 130px; display: flex; align-items: center; justify-content: center; }
+        .item-card-body { padding: 12px; text-align: left; }
+        .item-card-title { font-weight: bold; font-size: 14px; color: #2d3748; margin-bottom: 4px; }
+        .item-card-desc { font-size: 12px; color: #718096; margin: 0; }
+
+        /* 테마별 카드 배경 */
+        .px-card { background: #fffaf0; border-color: #feebc8; border-left-color: #dd6b20; }
+        .training-card { background: #fff5f5; border-color: #fed7d7; border-left-color: #e53e3e; }
+        .discount-card { background: #f0fff4; border-color: #c6f6d5; border-left-color: #38a169; }
+        .memo-card { background: #f0f4fe; border-color: #d0e1fd; border-left-color: #2b6cb0; }
+        .site-card { background: #f7fafc; border-color: #e2e8f0; border-left-color: #3182ce; transition: background-color 0.2s ease; }
+        .site-card:hover { background: #ebf8ff; }
+        .site-link { text-decoration: none; color: inherit; display: block; }
+        .site-link h3 { color: #2b6cb0; text-decoration: underline; text-underline-offset: 3px; }
+
+        /* 군가 음원 직접 링크 스타일 */
+        .song-links { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e0; }
+        .song-link-btn { display: inline-block; background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-size: 12px; margin-right: 6px; margin-top: 4px; font-weight: bold; }
+        .song-link-btn:hover { background: #cbd5e0; color: #1a365d; }
+
+        /* FAQ 아코디언 */
+        .faq-item { border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+        .faq-question { background: #f7fafc; padding: 12px 15px; font-size: 14px; font-weight: bold; color: #2d3748; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .faq-answer { padding: 12px 15px; font-size: 13px; color: #4a5568; background: #fff; border-top: 1px solid #e2e8f0; display: none; line-height: 1.5; }
+
+        .tip-box { background: #fffaf0; border-left: 4px solid #dd6b20; padding: 14px; font-size: 13px; margin-top: 15px; border-radius: 0 8px 8px 0; color: #7b341e; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎖️ 입대 D-Day & 전역일 통합 플래너</h1>
+    <div class="subtitle">행정, 준비물, 훈련, 복지 혜택 및 실시간 정보 가이드</div>
+
+    <!-- 1. 입대일 & 전역일 계산기 -->
+    <div class="date-box">
+        <div class="input-group">
+            <label for="serviceType">군 종 선택:</label>
+            <select id="serviceType" onchange="calculateDates()">
+                <option value="18">육군 / 카투사 / 해병대 (18개월)</option>
+                <option value="20">해군 (20개월)</option>
+                <option value="21">공군 / 사회복무요원 (21개월)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="enlistDate">입대일 선택:</label>
+            <input type="date" id="enlistDate" onchange="calculateDates()">
+        </div>
+
+        <div class="result-grid" id="resultContainer" style="display: none;">
+            <div class="result-item">
+                <div class="result-label">입대 D-Day</div>
+                <div class="result-val" id="enlistDdayText">-</div>
+            </div>
+            <div class="result-item">
+                <div class="result-label">예정 전역일</div>
+                <div class="result-val" id="dischargeDateText">-</div>
+            </div>
+            <div class="result-item" style="grid-column: span 2; margin-top: 5px;">
+                <div class="result-label">전역까지 남은 기간</div>
+                <div class="result-val" id="dischargeDdayText" style="color: #e53e3e;">-</div>
+            </div>
+        </div>
+
+        <div id="progressBox" style="display: none;">
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">복무 진행률 0%</div>
+        </div>
+    </div>
+
+    <!-- 2. 핵심 노하우 요약 -->
+    <h2>💡 입대 전 챙겨야 할 핵심 노하우</h2>
+    <div class="card-grid">
+        <div class="card">
+            <h3>💰 1. 장병내일준비적금 사전 신청</h3>
+            <p>전역 시 원금 및 정부 지원금이 더해져 큰 목돈이 됩니다. 입대 전 시중 은행별 금리를 미리 비교하고 나라사랑카드 발급 상태를 확인하세요.</p>
+        </div>
+        <div class="card">
+            <h3>🏫 2. 대학 휴학 타이밍 및 학사 일정 확인</h3>
+            <p>입영통지서 발급 후 학과 사무실/학사팀 규정을 체크하세요. 성적 인정 기간이나 군 휴학 전환 일정을 놓치면 한 학기가 꼬일 수 있습니다.</p>
+        </div>
+        <div class="card">
+            <h3>📱 3. 통신사 정지 및 군인 요금제 변경</h3>
+            <p>보안 문제로 부대 내 와이파이가 없으므로 통신사 데이터 사용이 필수입니다. 군 정지 신청 후 군인 전용 요금제(무제한 데이터 등)로 사전 전환하세요.</p>
+        </div>
+    </div>
+
+    <!-- 3. 외워두면 유용한 군대 기본 상식 (군가 유튜브 링크 추가) -->
+    <h2>🧠 입대 전 미리 외워두면 유용한 기본 상식</h2>
+    <div class="card-grid">
+        <div class="card memo-card">
+            <h3>🎖️ 군대 계급 순서 (병사 ~ 장교)</h3>
+            <p>
+                • <b>병사:</b> 이병 ➔ 일병 ➔ 상병 ➔ 병장<br>
+                • <b>부사관:</b> 하사 ➔ 중사 ➔ 상사 ➔ 원사<br>
+                • <b>위관급/영관급 장교:</b> 소위/중위/대위 ➔ 소령/중령/대령<br>
+                • <b>장성급 장교:</b> 준장(★) ➔ 소장(★★) ➔ 중장(★★★) ➔ 대장(★★★★)
+            </p>
+        </div>
+        <div class="card memo-card">
+            <h3>🎵 대표 군가 듣기 & 미리 익히기</h3>
+            <p>
+                • <b>3대 대표 군가:</b> 육군가, 사나이 한목숨, 전선을 간다<br>
+                • <b>팁:</b> 입소 후 1~2주 차에 가사와 멜로디를 외우게 됩니다. 아래 링크를 통해 멜로디를 들어보세요.
+            </p>
+            <div class="song-links">
+                <a href="https://www.youtube.com/watch?v=6saR2FFgKkw" target="_blank" class="song-link-btn">▶️ 육군가 듣기</a>
+                <a href="https://www.youtube.com/watch?v=geGciQ-MJBc" target="_blank" class="song-link-btn">▶️ 전선을 간다 듣기</a>
+                <a href="https://www.youtube.com/results?search_query=대한민국+대표+군가+모음" target="_blank" class="song-link-btn">🎧 군가 전체 모음 듣기</a>
+            </div>
+        </div>
+        <div class="card memo-card">
+            <h3>🗣️ 관등성명 대기 & 언어 예절</h3>
+            <p>
+                • <b>관등성명 규칙:</b> [번호/소속] + [계급] + [성명] (예: "23번 훈련병 홍길동!")<br>
+                • <b>다나까 말투:</b> 말끝은 항상 "~다", "~까"로 끝맺음합니다. (예: "알겠습니다.", "그렇습니까?")
+            </p>
+        </div>
+    </div>
+
+    <!-- 4. 필수 행정 & 서류 체크리스트 -->
+    <h2>📋 필수 행정 & 제출 서류 체크리스트</h2>
+    <ul class="checklist">
+        <li><label><input type="checkbox"> 입영통지서 출력 및 신분증 지참 확인</label></li>
+        <li><label><input type="checkbox"> 나라사랑카드 비밀번호 재확인 및 계좌 잔액 충전</label></li>
+        <li><label><input type="checkbox"> 대학교 군 휴학 신청 완료 및 승인 확인서 수령</label></li>
+        <li><label><input type="checkbox"> 나라사랑포털 로그인 테스트 (인증서 사전 발급 및 비밀번호 확인)</label></li>
+        <li><label><input type="checkbox"> 자격증 / 운전면허증 사본 지참 (특기병/보직 선발 가산점 제출용)</label></li>
+        <li><label><input type="checkbox"> 개인 지병 관련 의사 진단서 / 처방전 / 소견서 지참 (신체검사 및 약 복용 허가용)</label></li>
+        <li><label><input type="checkbox"> 정기 결제 서비스(OTT, 음원, 구독 등) 일시정지 또는 해지</label></li>
+    </ul>
+
+    <!-- 5. 지참 물품 체크리스트 -->
+    <h2>🎒 입소 지참 물품 완벽 체크리스트</h2>
+    <ul class="checklist">
+        <li><label><input type="checkbox"> 신분증, 나라사랑카드, 입영통지서</label></li>
+        <li><label><input type="checkbox"> 플라스틱/튜브형 올인원 로션 및 선크림 (유리 용기 반입 절대 불가)</label></li>
+        <li><label><input type="checkbox"> 방수/라이트 기능 군용 전자시계 (카시오 등, 스마트워치 절대 금지)</label></li>
+        <li><label><input type="checkbox"> 우레탄 충격 흡수 깔창 & 무릎/팔꿈치 보호대</label></li>
+        <li><label><input type="checkbox"> 안경 착용자: 여분 안경, 안경 닦이, 안경 고정 밴드</label></li>
+        <li><label><input type="checkbox"> 포켓용 미니 수첩 (지인 연락처, 주소, 계좌번호 기재) & 검은색 라이트펜</label></li>
+        <li><label><input type="checkbox"> 개인 목도장 (행정 절차 및 적금 가입용)</label></li>
+        <li><label><input type="checkbox"> 휴대폰, C타입 충전기, 보조배터리 (자대/주말 사용 제출용)</label></li>
+    </ul>
+
+    <!-- 6. 입소대대 필수 준비물 꿀템 -->
+    <h2>✨ 가져가면 무조건 칭찬받는 꿀템 4선</h2>
+    <div class="item-grid">
+        <div class="item-card">
+            <div class="item-icon-box">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2b6cb0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21h10a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"></path><path d="M12 7V3"></path><path d="M9 3h6"></path><path d="M12 11v4"></path><path d="M10 13h4"></path></svg>
+            </div>
+            <div class="item-card-body">
+                <div class="item-card-title">플라스틱 올인원 화장품 / 선크림</div>
+                <div class="item-card-desc">유리병 반입 절대 불가! 튜브형이나 플라스틱 용기에 담긴 스킨/로션 올인원 제품과 선크림을 챙기세요.</div>
+            </div>
+        </div>
+        <div class="item-card">
+            <div class="item-icon-box">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2b6cb0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="12" height="10" rx="2"></rect><path d="M9 3h6v4H9z"></path><path d="M9 17h6v4H9z"></path><path d="M9 12h2"></path><path d="M13 12h2"></path></svg>
+            </div>
+            <div class="item-card-body">
+                <div class="item-card-title">군용 디지털 전자시계 (카시오 등)</div>
+                <div class="item-card-desc">스마트워치 반입 절대 금지! 방수 기능, 야간 라이트, 알람이 되는 튼튼한 우레탄 밴드 시계가 필수입니다.</div>
+            </div>
+        </div>
+        <div class="item-card">
+            <div class="item-icon-box">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2b6cb0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13c0 5-4.5 9-9 9S3 18 3 13 6 2 9 2s9 6 9 11z"></path><path d="M9 6v6"></path><path d="M9 18h.01"></path></svg>
+            </div>
+            <div class="item-card-body">
+                <div class="item-card-title">우레탄 기능성 깔창 & 보호대</div>
+                <div class="item-card-desc">전투화는 딱딱하여 행군 시 발바닥 물집 완화용 충격 흡수 깔창이 필수입니다. 무릎·팔꿈치 보호대도 챙기세요.</div>
+            </div>
+        </div>
+        <div class="item-card">
+            <div class="item-icon-box">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2b6cb0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><path d="M18 7l3-3"></path><path d="M15 10l3-3"></path></svg>
+            </div>
+            <div class="item-card-body">
+                <div class="item-card-title">포켓 수첩 & 검은색 라이트펜</div>
+                <div class="item-card-desc">지인 연락처, 주소, 계좌번호를 미리 기재해 가세요. 야간 불침번이나 훈련 시 메모할 때 매우 유용합니다.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. 부대 내 PX 구매 추천 물품 -->
+    <h2>🛒 부대 내 PX 인기 물품 & 구매 가이드</h2>
+    <div class="card-grid">
+        <div class="card px-card">
+            <h3>🍜 1. 인기 간식 및 냉동식품</h3>
+            <p>• <b>인기 먹거리:</b> 슈넬치킨, 크림우동, 슈프림 냉동 카라아게, 각종 빅팜 소세지, PX 전용 만두.<br>• <b>특징:</b> 시중 마트보다 20~50% 저렴한 면세 가격으로 이용 가능합니다.</p>
+        </div>
+        <div class="card px-card">
+            <h3>🧴 2. 유명 스킨케어 & 화장품 (선물용 1위)</h3>
+            <p>• <b>인기 화장품:</b> 닥터지(Dr.G) 달팽이 크림/블레미쉬 크림, AHC 아이크림, 독도 스킨/로션.<br>• <b>선물 팁:</b> 부모님이나 친구, 여자친구 선물용으로 인기가 매우 높습니다.</p>
+        </div>
+        <div class="card px-card">
+            <h3>💊 3. 건강기능식품 & 생필품</h3>
+            <p>• <b>추천 상품:</b> 홍삼 정과/엑기스, 종합 비타민, 밀크씨슬, 단백질 파우더(프로틴).<br>• <b>생필품:</b> 면도날, 폼클렌징, 샤워타월, 면도 젤 등을 저렴하게 구매 가능합니다.</p>
+        </div>
+    </div>
+
+    <!-- 8. 주요 군사 훈련 및 대비 꿀팁 -->
+    <h2>🎯 주요 군사 훈련 내용 & 사전 대비 팁</h2>
+    <div class="card-grid">
+        <div class="card training-card">
+            <h3>🎯 1. 제식 훈련 및 사격 훈련</h3>
+            <p>• <b>훈련 내용:</b> 기본 군대 예절 제식 및 소총 분해결합, 영점 사격, 실사격 진행.<br>• <b>대응 팁:</b> '호흡 조절'과 '총구 견착'에 집중하세요. 안경 착용자는 사격 전 고정 밴드 착용을 추천합니다.</p>
+        </div>
+        <div class="card training-card">
+            <h3>☣️ 2. 화생방 훈련</h3>
+            <p>• <b>훈련 내용:</b> 가스 정화통 교체 및 방독면 착용 후 가스실 체감 훈련.<br>• <b>대응 팁:</b> 방독면 끈 밀착 조절이 핵심! 공기 누출이 없도록 밀착 착용법을 숙지하세요.</p>
+        </div>
+        <div class="card training-card">
+            <h3>🥾 3. 행군 (야간/종합 행군)</h3>
+            <p>• <b>훈련 내용:</b> 20kg 군장을 메고 10~20km 이상 거리를 장시간 이동.<br>• <b>대응 팁:</b> 발바닥 우레탄 깔창 착용과 양말 두 겹 신기가 물집 예방에 특효입니다.</p>
+        </div>
+        <div class="card training-card">
+            <h3>💣 4. 수류탄 & 각개전투 훈련</h3>
+            <p>• <b>훈련 내용:</b> 수류탄 투척 및 야전 포복 기동 장애물 통과 훈련.<br>• <b>대응 팁:</b> 무릎 및 팔꿈치 보호대를 안쪽에 미리 꼭 착용하고 훈련에 임하세요.</p>
+        </div>
+    </div>
+
+    <!-- 9. 군생활 필수 안내 -->
+    <h2>🪖 군 생활 핵심 안내 (월급·휴대폰·휴가·면회)</h2>
+    <div class="card-grid">
+        <div class="card" style="background: #eef2ff; border-color: #c7d2fe; border-left-color: #3730a3;">
+            <h3 style="color: #3730a3;">💳 병사 월급 및 자산 형성 안내</h3>
+            <p style="color: #312e81;">
+                • <b>계급별 월 봉급:</b> 이병 75만원 / 일병 90만원 / 상병 120만원 / 병장 150만원 (매월 10일 지급)<br>
+                • <b>정부 매칭 지원금:</b> 적금 납입 시 정부 추가 지원금 포함 실질 수령액 (병장 기준 월 약 205만원 상당)<br>
+                • <b>장병내일준비적금:</b> 복무 기간 동안 월 최대 55만원 납입 시 전역 시 <b>약 1,500만~2,000만원 목돈</b> 마련 가능!
+            </p>
+        </div>
+        <div class="card">
+            <h3>📱 휴대폰 사용 및 가정 연동 연락</h3>
+            <p>
+                • <b>사용 시간:</b> 평일 일과 후(18:00 ~ 21:00) / 주말·공휴일(08:30 ~ 21:00)<br>
+                • <b>가족/외부 연락:</b> 휴대폰 사용 시간 동안 음성 통화, 카카오톡, 영상 통화 모두 가능합니다.<br>
+                • <b>네트워크:</b> 부대 내 와이파이가 없으므로 100% 개인 데이터를 사용합니다. 군인 전용 무제한 요금제 가입 추천!
+            </p>
+        </div>
+        <div class="card">
+            <h3>🏖️ 휴가 및 외출/외박</h3>
+            <p>
+                • <b>연가:</b> 복무 기간 중 계급별 분할 부여 (정기 휴가)<br>
+                • <b>포상/위로휴가:</b> 사격 성적, 훈련 우수, 과업 성과 시 추가 부여<br>
+                • <b>외출·외박:</b> 주말에 출타 허가를 받아 지정 위수지역 내 자유시간 이용 가능
+            </p>
+        </div>
+        <div class="card">
+            <h3>🤝 면회 제도</h3>
+            <p>
+                • <b>신병교육대 면회:</b> 5주간의 훈련 수료식 당일 가족 면회 가능<br>
+                • <b>자대 배치 후:</b> 주말/공휴일 사전 신청 후 면회실에서 면회 진행
+            </p>
+        </div>
+    </div>
+
+    <!-- 10. 자주 묻는 질문 (FAQ) -->
+    <h2>❓ 자주 묻는 질문 (FAQ)</h2>
+    <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">Q1. 가정에서 휴대폰 사용 시각에 병사에게 바로 전화해도 되나요? <span>▼</span></div>
+        <div class="faq-answer">
+            네, 당연히 가능합니다! 평일 18:00~21:00, 주말/공휴일 08:30~21:00 사이에는 직접 전화나 카카오톡, 영상 통화를 걸어 안부를 주고받으실 수 있습니다.
+        </div>
+    </div>
+    <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">Q2. 부대 안에서 와이파이가 되나요? <span>▼</span></div>
+        <div class="faq-answer">
+            아닙니다. 군 부대는 보안 구역으로 병사용 와이파이가 설치되어 있지 않습니다. 반드시 본인의 LTE/5G 데이터를 사용해야 하므로 '군인 전용 요금제' 가입을 추천합니다.
+        </div>
+    </div>
+    <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">Q3. 훈련소(신병교육대)에서도 자대처럼 매일 휴대폰을 쓰나요? <span>▼</span></div>
+        <div class="faq-answer">
+            신병교육대 훈련 기간(5주)에는 통제하에 주말 지정된 시간(약 30분~1시간 내외)에만 제한적으로 사용하게 됩니다. 자유로운 매일 휴대폰 사용은 자대 배치 이후부터 적용됩니다.
+        </div>
+    </div>
+    <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">Q4. 처방약이나 상비약도 반입 가능한가요? <span>▼</span></div>
+        <div class="faq-answer">
+            의사 처방전이 있는 약은 소지할 수 있으며, 일반 상비약(타이레놀 등)은 입소 시 제출 후 소대의무병이나 교관 확인을 거쳐 복용할 수 있습니다.
+        </div>
+    </div>
+    <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">Q5. 안경 쓰는 사람인데 여분 안경이 필요한가요? <span>▼</span></div>
+        <div class="faq-answer">
+            네, 격렬한 훈련 중 안경이 파손될 수 있으므로 여분의 안경과 안경 줄을 꼭 챙겨가세요. 위생 문제로 렌즈 착용은 추천하지 않습니다.
+        </div>
+    </div>
+
+    <!-- 11. 군생활 꿀팁 -->
+    <h2>🛡️ 군생활 생존 꿀팁</h2>
+    <div class="tip-box">
+        • <b>관계 형성:</b> 동기 및 선임과의 첫인상이 중요합니다. 인사성 밝게 행동하고 모르는 것은 솔직하게 물어보세요.<br>
+        • <b>자기계발:</b> 일과 후 개인 정비 시간을 활용해 하루 30분씩이라도 자격증/어학 공부를 지속하면 전역 시 큰 자산이 됩니다.<br>
+        • <b>안전 우선:</b> 훈련 시 무리하게 참지 말고 통증이나 이상이 느껴지면 즉시 간부나 의무대에 알리세요.
+    </div>
+
+    <!-- 12. 군 장병 필수 복지 할인 혜택 모음 -->
+    <h2>🎁 군 장병 필수 복지 할인 혜택 모음</h2>
+    <div class="card-grid">
+        <div class="card discount-card">
+            <h3>🎬 영화관 할인 (CGV, 롯데시네마, 메가박스)</h3>
+            <p>• <b>혜택:</b> 본인 및 동반 1인 포함 영화 7,000~9,000원 관람 + 콤보 세트 할인.<br>• <b>방법:</b> 현장 매표소에서 휴가증, 외출증 또는 나라사랑카드 제시.</p>
+        </div>
+        <div class="card discount-card">
+            <h3>🚆 교통 할인 (KTX, SRT, 고속버스)</h3>
+            <p>• <b>혜택:</b> TMO(군후급) 이용 시 지정 구간 무료, 일반 예매 시 군인 할인 적용.<br>• <b>방법:</b> 국방수송정보체계(TDIS) 또는 TMO 창구에서 휴가증 제시 후 발권.</p>
+        </div>
+        <div class="card discount-card">
+            <h3>🎡 테마파크 및 스포츠 경기 무료/할인</h3>
+            <p>• <b>혜택:</b> 에버랜드 휴가장병 무료 입출, 롯데월드 할인, K리그/프로야구 무료 및 할인 관람.<br>• <b>방법:</b> 해당 기관 예약 페이지에서 군인 인증 후 입장에서 휴가증 지참.</p>
+        </div>
+    </div>
+
+    <!-- 13. 최신 군 정보 모니터링 사이트 -->
+    <h2>🌐 최신 군 정보 모니터링 사이트</h2>
+    <div class="card-grid">
+        <div class="card site-card">
+            <a href="https://www.mma.go.kr" target="_blank" class="site-link">
+                <h3>🏛️ 병무청 공식 누리집 (mma.go.kr) 🔗</h3>
+                <p>• 모집병 지원 일정, 신체검사 개정 기준, 입영 연기 및 가산점 최신 공지 확인.</p>
+            </a>
+        </div>
+        <div class="card site-card">
+            <a href="https://www.narasarang.or.kr" target="_blank" class="site-link">
+                <h3>💳 나라사랑포털 (narasarang.or.kr) 🔗</h3>
+                <p>• 장병내일준비적금 가입 자격 확인서 발급, 군 e-러닝 수강 신청, 장병 할인 혜택 확인.</p>
+            </a>
+        </div>
+        <div class="card site-card">
+            <a href="https://blog.naver.com/mnd9090" target="_blank" class="site-link">
+                <h3>📢 국방부 공식 블로그 '동고동락' 🔗</h3>
+                <p>• 부대 피복/급식 개선 사항, 휴대폰 사용 수칙 최신화 및 훈련소 수료식 공지 확인.</p>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 입대일 & 전역일 계산 함수
+    function calculateDates() {
+        const enlistVal = document.getElementById('enlistDate').value;
+        if (!enlistVal) return;
+
+        const months = parseInt(document.getElementById('serviceType').value);
+        const enlistDate = new Date(enlistVal);
+        
+        const dischargeDate = new Date(enlistDate);
+        dischargeDate.setMonth(dischargeDate.getMonth() + months);
+        dischargeDate.setDate(dischargeDate.getDate() - 1);
+
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        enlistDate.setHours(0,0,0,0);
+        dischargeDate.setHours(0,0,0,0);
+
+        document.getElementById('resultContainer').style.display = 'grid';
+        document.getElementById('progressBox').style.display = 'block';
+
+        const formatDate = (date) => {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        };
+
+        document.getElementById('dischargeDateText').innerText = formatDate(dischargeDate);
+
+        const diffEnlistTime = enlistDate - today;
+        const diffEnlistDays = Math.ceil(diffEnlistTime / (1000 * 60 * 60 * 24));
+        
+        const enlistEl = document.getElementById('enlistDdayText');
+        if (diffEnlistDays > 0) {
+            enlistEl.innerText = `D-${diffEnlistDays}`;
+        } else if (diffEnlistDays === 0) {
+            enlistEl.innerText = `D-Day (오늘 입대)`;
+        } else {
+            enlistEl.innerText = `입대 후 +${Math.abs(diffEnlistDays)}일`;
+        }
+
+        const diffDischargeTime = dischargeDate - today;
+        const diffDischargeDays = Math.ceil(diffDischargeTime / (1000 * 60 * 60 * 24));
+        const dischargeEl = document.getElementById('dischargeDdayText');
+
+        const totalServiceDays = Math.ceil((dischargeDate - enlistDate) / (1000 * 60 * 60 * 24));
+        const servedDays = Math.max(0, Math.ceil((today - enlistDate) / (1000 * 60 * 60 * 24)));
+
+        let progressRate = 0;
+        if (today >= dischargeDate) {
+            progressRate = 100;
+            dischargeEl.innerText = "전역을 축하합니다! 🎉";
+        } else if (today < enlistDate) {
+            progressRate = 0;
+            dischargeEl.innerText = `전역까지 D-${diffDischargeDays}일`;
+        } else {
+            progressRate = Math.min(100, ((servedDays / totalServiceDays) * 100)).toFixed(1);
+            dischargeEl.innerText = `전역까지 D-${diffDischargeDays}일`;
+        }
+
+        document.getElementById('progressBar').style.width = `${progressRate}%`;
+        document.getElementById('progressText').innerText = `복무 진행률 ${progressRate}%`;
+    }
+
+    // FAQ 토글 함수
+    function toggleFaq(element) {
+        const answer = element.nextElementSibling;
+        const arrow = element.querySelector('span');
+        
+        if (answer.style.display === "block") {
+            answer.style.display = "none";
+            arrow.innerText = "▼";
+        } else {
+            answer.style.display = "block";
+            arrow.innerText = "▲";
+        }
+    }
+</script>
+
+</body>
+</html>
