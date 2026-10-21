@@ -6,74 +6,81 @@
     <title>입대 D-Day & 전역일 통합 플래너</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; line-height: 1.6; }
-        .container { max-width: 650px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h1 { font-size: 22px; text-align: center; color: #1a365d; margin-top: 0; margin-bottom: 5px; }
-        .subtitle { text-align: center; font-size: 13px; color: #666; margin-bottom: 20px; }
+        body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background-color: #f2f4ee; margin: 0; padding: 20px; color: #2d332a; line-height: 1.6; }
+        .container { max-width: 650px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(45, 51, 42, 0.08); border: 1px solid #e1e5da; }
         
-        /* D-Day & 전역일 계산 박스 */
-        .date-box { background: #ebf8ff; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 25px; border: 1px solid #bee3f8; }
+        /* 메인 타이틀 & 스쿼드 헤더 */
+        .header-badge { display: inline-block; background: #e2e8d8; color: #3b5e2b; font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; letter-spacing: 0.5px; }
+        h1 { font-size: 22px; text-align: center; color: #243b1a; margin-top: 0; margin-bottom: 5px; }
+        .subtitle { text-align: center; font-size: 13px; color: #5c6655; margin-bottom: 22px; }
+        
+        /* D-Day & 전역일 계산 박스 (카키 밀리터리 스타일) */
+        .date-box { background: #f0f4ea; padding: 20px; border-radius: 14px; text-align: center; margin-bottom: 25px; border: 1px solid #d4dec9; }
         .input-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 12px; align-items: center; }
-        .input-group label { font-weight: bold; font-size: 14px; color: #2b6cb0; }
-        .input-group input, .input-group select { padding: 8px; font-size: 14px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none; }
+        .input-group label { font-weight: bold; font-size: 14px; color: #3b5e2b; }
+        .input-group input, .input-group select { padding: 9px 12px; font-size: 14px; border: 1px solid #b8c4aa; border-radius: 8px; outline: none; background: #fff; color: #2d332a; }
+        .input-group input:focus, .input-group select:focus { border-color: #3b5e2b; box-shadow: 0 0 0 2px rgba(59, 94, 43, 0.15); }
         
-        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; background: #ffffff; padding: 14px; border-radius: 10px; border: 1px solid #d4dec9; }
         .result-item { text-align: center; }
-        .result-label { font-size: 12px; color: #718096; }
-        .result-val { font-size: 16px; font-weight: bold; color: #2b6cb0; }
+        .result-label { font-size: 12px; color: #6b7564; }
+        .result-val { font-size: 16px; font-weight: bold; color: #3b5e2b; }
         
-        /* Progress Bar */
-        .progress-container { margin-top: 12px; background: #e2e8f0; border-radius: 10px; height: 16px; overflow: hidden; position: relative; }
-        .progress-bar { background: linear-gradient(90deg, #3182ce, #63b3ed); height: 100%; width: 0%; transition: width 0.5s ease; }
-        .progress-text { font-size: 11px; font-weight: bold; color: #2d3748; margin-top: 4px; text-align: right; }
+        /* Progress Bar (택티컬 그라데이션) */
+        .progress-container { margin-top: 12px; background: #dce3d3; border-radius: 10px; height: 16px; overflow: hidden; position: relative; }
+        .progress-bar { background: linear-gradient(90deg, #4d7a38, #74a05d); height: 100%; width: 0%; transition: width 0.5s ease; }
+        .progress-text { font-size: 11px; font-weight: bold; color: #3b5e2b; margin-top: 5px; text-align: right; }
 
-        h2 { font-size: 17px; border-bottom: 2px solid #2b6cb0; padding-bottom: 6px; margin-top: 30px; color: #1a365d; display: flex; align-items: center; gap: 6px; }
+        h2 { font-size: 16px; border-bottom: 2px solid #4d7a38; padding-bottom: 6px; margin-top: 32px; color: #243b1a; display: flex; align-items: center; gap: 6px; }
         
         /* 체크리스트 스타일 */
         ul.checklist { list-style: none; padding: 0; margin: 0; }
-        ul.checklist li { padding: 10px 0; border-bottom: 1px solid #edf2f7; font-size: 14px; display: flex; align-items: center; }
-        ul.checklist li input { margin-right: 12px; width: 18px; height: 18px; accent-color: #3182ce; cursor: pointer; }
+        ul.checklist li { padding: 10px 0; border-bottom: 1px solid #e8ebd8; font-size: 14px; display: flex; align-items: center; }
+        ul.checklist li input { margin-right: 12px; width: 18px; height: 18px; accent-color: #3b5e2b; cursor: pointer; }
         
         /* 카드 공통 스타일 */
         .card-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 10px; }
-        .card { background: #f7fafc; padding: 14px 16px; border-radius: 10px; border-left: 4px solid #3182ce; }
-        .card h3 { margin: 0 0 6px 0; font-size: 15px; color: #2d3748; }
-        .card p { margin: 0; font-size: 13px; color: #4a5568; line-height: 1.5; }
+        .card { background: #f8f9f5; padding: 14px 16px; border-radius: 10px; border-left: 4px solid #4d7a38; border-top: 1px solid #e5e9de; border-right: 1px solid #e5e9de; border-bottom: 1px solid #e5e9de; }
+        .card h3 { margin: 0 0 6px 0; font-size: 15px; color: #243b1a; }
+        .card p { margin: 0; font-size: 13px; color: #4e5748; line-height: 1.5; }
 
         /* SVG 아이콘 기반 꿀템 카드 */
         .item-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px; }
-        .item-card { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #fff; text-align: center; }
-        .item-icon-box { background: #edf2f7; height: 130px; display: flex; align-items: center; justify-content: center; }
+        .item-card { border: 1px solid #dce3d3; border-radius: 12px; overflow: hidden; background: #fff; text-align: center; }
+        .item-icon-box { background: #f0f4ea; height: 120px; display: flex; align-items: center; justify-content: center; }
         .item-card-body { padding: 12px; text-align: left; }
-        .item-card-title { font-weight: bold; font-size: 14px; color: #2d3748; margin-bottom: 4px; }
-        .item-card-desc { font-size: 12px; color: #718096; margin: 0; }
+        .item-card-title { font-weight: bold; font-size: 14px; color: #243b1a; margin-bottom: 4px; }
+        .item-card-desc { font-size: 12px; color: #6b7564; margin: 0; }
 
         /* 테마별 카드 배경 */
-        .px-card { background: #fffaf0; border-color: #feebc8; border-left-color: #dd6b20; }
-        .training-card { background: #fff5f5; border-color: #fed7d7; border-left-color: #e53e3e; }
-        .discount-card { background: #f0fff4; border-color: #c6f6d5; border-left-color: #38a169; }
-        .memo-card { background: #f0f4fe; border-color: #d0e1fd; border-left-color: #2b6cb0; }
-        .site-card { background: #f7fafc; border-color: #e2e8f0; border-left-color: #3182ce; transition: background-color 0.2s ease; }
-        .site-card:hover { background: #ebf8ff; }
+        .px-card { background: #fefcf5; border-color: #f2e7c9; border-left-color: #c9932a; }
+        .px-card h3 { color: #8a5d08; }
+        .training-card { background: #fdf8f8; border-color: #f5d7d7; border-left-color: #be4b4b; }
+        .training-card h3 { color: #8a2424; }
+        .discount-card { background: #f5f9f2; border-color: #d2e6c7; border-left-color: #3b5e2b; }
+        .memo-card { background: #f0f4ea; border-color: #d4dec9; border-left-color: #4d7a38; }
+        .site-card { background: #ffffff; border: 1px solid #dce3d3; border-left: 4px solid #3b5e2b; transition: background-color 0.2s ease; }
+        .site-card:hover { background: #f0f4ea; }
         .site-link { text-decoration: none; color: inherit; display: block; }
-        .site-link h3 { color: #2b6cb0; text-decoration: underline; text-underline-offset: 3px; }
+        .site-link h3 { color: #3b5e2b; text-decoration: underline; text-underline-offset: 3px; }
 
         /* 군가 음원 직접 링크 스타일 */
-        .song-links { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e0; }
-        .song-link-btn { display: inline-block; background: #e2e8f0; color: #2d3748; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-size: 12px; margin-right: 6px; margin-top: 4px; font-weight: bold; }
-        .song-link-btn:hover { background: #cbd5e0; color: #1a365d; }
+        .song-links { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cad4be; }
+        .song-link-btn { display: inline-block; background: #e2e8d8; color: #243b1a; padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; margin-right: 6px; margin-top: 4px; font-weight: bold; transition: background 0.2s; }
+        .song-link-btn:hover { background: #3b5e2b; color: #ffffff; }
 
         /* FAQ 아코디언 */
-        .faq-item { border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
-        .faq-question { background: #f7fafc; padding: 12px 15px; font-size: 14px; font-weight: bold; color: #2d3748; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .faq-answer { padding: 12px 15px; font-size: 13px; color: #4a5568; background: #fff; border-top: 1px solid #e2e8f0; display: none; line-height: 1.5; }
+        .faq-item { border: 1px solid #dce3d3; border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+        .faq-question { background: #f8f9f5; padding: 12px 15px; font-size: 14px; font-weight: bold; color: #243b1a; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .faq-answer { padding: 12px 15px; font-size: 13px; color: #4e5748; background: #fff; border-top: 1px solid #dce3d3; display: none; line-height: 1.5; }
 
-        .tip-box { background: #fffaf0; border-left: 4px solid #dd6b20; padding: 14px; font-size: 13px; margin-top: 15px; border-radius: 0 8px 8px 0; color: #7b341e; }
+        .tip-box { background: #fefcf5; border-left: 4px solid #c9932a; padding: 14px; font-size: 13px; margin-top: 15px; border-radius: 0 8px 8px 0; color: #73500a; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <div style="text-align: center;"><span class="header-badge">MILITARY PLANNER</span></div>
     <h1>🎖️ 입대 D-Day & 전역일 통합 플래너</h1>
     <div class="subtitle">행정, 준비물, 훈련, 복지 혜택 및 실시간 정보 가이드</div>
 
@@ -103,7 +110,7 @@
             </div>
             <div class="result-item" style="grid-column: span 2; margin-top: 5px;">
                 <div class="result-label">전역까지 남은 기간</div>
-                <div class="result-val" id="dischargeDdayText" style="color: #e53e3e;">-</div>
+                <div class="result-val" id="dischargeDdayText" style="color: #be4b4b;">-</div>
             </div>
         </div>
 
@@ -132,7 +139,7 @@
         </div>
     </div>
 
-    <!-- 3. 외워두면 유용한 군대 기본 상식 (군가 유튜브 링크 추가) -->
+    <!-- 3. 외워두면 유용한 군대 기본 상식 -->
     <h2>🧠 입대 전 미리 외워두면 유용한 기본 상식</h2>
     <div class="card-grid">
         <div class="card memo-card">
@@ -195,7 +202,7 @@
     <div class="item-grid">
         <div class="item-card">
             <div class="item-icon-box">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2b6cb0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21h10a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"></path><path d="M12 7V3"></path><path d="M9 3h6"></path><path d="M12 11v4"></path><path d="M10 13h4"></path></svg>
+                <svg width="55" height="55" viewBox="0 0 24 24" fill="none" stroke="#3b5e2b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21h10a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"></path><path d="M12 7V3"></path><path d="M9 3h6"></path><path d="M12 11v4"></path><path d="M10 13h4"></path></svg>
             </div>
             <div class="item-card-body">
                 <div class="item-card-title">플라스틱 올인원 화장품 / 선크림</div>
@@ -204,7 +211,7 @@
         </div>
         <div class="item-card">
             <div class="item-icon-box">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2b6cb0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="12" height="10" rx="2"></rect><path d="M9 3h6v4H9z"></path><path d="M9 17h6v4H9z"></path><path d="M9 12h2"></path><path d="M13 12h2"></path></svg>
+                <svg width="55" height="55" viewBox="0 0 24 24" fill="none" stroke="#3b5e2b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="12" height="10" rx="2"></rect><path d="M9 3h6v4H9z"></path><path d="M9 17h6v4H9z"></path><path d="M9 12h2"></path><path d="M13 12h2"></path></svg>
             </div>
             <div class="item-card-body">
                 <div class="item-card-title">군용 디지털 전자시계 (카시오 등)</div>
@@ -213,7 +220,7 @@
         </div>
         <div class="item-card">
             <div class="item-icon-box">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2b6cb0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13c0 5-4.5 9-9 9S3 18 3 13 6 2 9 2s9 6 9 11z"></path><path d="M9 6v6"></path><path d="M9 18h.01"></path></svg>
+                <svg width="55" height="55" viewBox="0 0 24 24" fill="none" stroke="#3b5e2b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13c0 5-4.5 9-9 9S3 18 3 13 6 2 9 2s9 6 9 11z"></path><path d="M9 6v6"></path><path d="M9 18h.01"></path></svg>
             </div>
             <div class="item-card-body">
                 <div class="item-card-title">우레탄 기능성 깔창 & 보호대</div>
@@ -222,7 +229,7 @@
         </div>
         <div class="item-card">
             <div class="item-icon-box">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2b6cb0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><path d="M18 7l3-3"></path><path d="M15 10l3-3"></path></svg>
+                <svg width="55" height="55" viewBox="0 0 24 24" fill="none" stroke="#3b5e2b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path><path d="M18 7l3-3"></path><path d="M15 10l3-3"></path></svg>
             </div>
             <div class="item-card-body">
                 <div class="item-card-title">포켓 수첩 & 검은색 라이트펜</div>
@@ -272,9 +279,9 @@
     <!-- 9. 군생활 필수 안내 -->
     <h2>🪖 군 생활 핵심 안내 (월급·휴대폰·휴가·면회)</h2>
     <div class="card-grid">
-        <div class="card" style="background: #eef2ff; border-color: #c7d2fe; border-left-color: #3730a3;">
-            <h3 style="color: #3730a3;">💳 병사 월급 및 자산 형성 안내</h3>
-            <p style="color: #312e81;">
+        <div class="card" style="background: #f0f4ea; border-color: #d4dec9; border-left-color: #3b5e2b;">
+            <h3 style="color: #243b1a;">💳 병사 월급 및 자산 형성 안내</h3>
+            <p style="color: #3b5e2b;">
                 • <b>계급별 월 봉급:</b> 이병 75만원 / 일병 90만원 / 상병 120만원 / 병장 150만원 (매월 10일 지급)<br>
                 • <b>정부 매칭 지원금:</b> 적금 납입 시 정부 추가 지원금 포함 실질 수령액 (병장 기준 월 약 205만원 상당)<br>
                 • <b>장병내일준비적금:</b> 복무 기간 동안 월 최대 55만원 납입 시 전역 시 <b>약 1,500만~2,000만원 목돈</b> 마련 가능!
