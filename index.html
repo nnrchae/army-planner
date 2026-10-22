@@ -9,6 +9,20 @@
         body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background-color: #f2f4ee; margin: 0; padding: 20px; color: #2d332a; line-height: 1.6; }
         .container { max-width: 650px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(45, 51, 42, 0.08); border: 1px solid #e1e5da; }
         
+        /* Gemini 경고 배너 스타일 */
+        .warning-banner {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            border-left: 5px solid #ffc107;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+        }
+
         /* 메인 타이틀 & 스쿼드 헤더 */
         .header-badge { display: inline-block; background: #e2e8d8; color: #3b5e2b; font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; letter-spacing: 0.5px; }
         h1 { font-size: 22px; text-align: center; color: #243b1a; margin-top: 0; margin-bottom: 5px; }
@@ -80,6 +94,11 @@
 <body>
 
 <div class="container">
+    <!-- Gemini 경고 배너 -->
+    <div class="warning-banner">
+        ⚠️ Gemini로 만든거라 오류가 있을 수 있으니 꼭 사실확인을 해보세요!
+    </div>
+
     <div style="text-align: center;"><span class="header-badge">MILITARY PLANNER</span></div>
     <h1>🎖️ 입대 D-Day & 전역일 통합 플래너</h1>
     <div class="subtitle">행정, 준비물, 훈련, 복지 혜택 및 실시간 정보 가이드</div>
